@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: Deploy Tailwind + TS to GitHub Pages
 
 on:
   push:
@@ -15,35 +15,31 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js & install deps
+      - name: Setup Node.js & cache npm
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-      - run: |
+          cache: npm
+
+      - name: Install deps & Build
+        run: |
           npm ci
           npm run build
 
-      - name: Enable GitHub Pages
-        uses: actions/configure-pages@v4                                            # habilita o Pages :contentReference[oaicite:0]{index=0}
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v4
 
-      - name: Upload build artifacts
+      - name: Upload build artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist/                                                                 # envia o conteúdo de dist :contentReference[oaicite:1]{index=1}
+          path: './dist'
 
-      - name: Deploy to Pages
+      - name: Deploy to GitHub Pages
         id: deploy
         uses: actions/deploy-pages@v4
-        with:
-          artifact-name: github-pages
-        environment:
-          name: github-pages
-          url: ${{ steps.deploy.outputs.page_url }}                                    # expõe a URL no UI :contentReference[oaicite:2]{index=2}
