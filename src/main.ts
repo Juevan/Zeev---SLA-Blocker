@@ -136,35 +136,66 @@ async function verificaAtrasos(): Promise<TaskItem[] | null> {
     return null;
   }
 
-  const url = `${window.location.origin}/api/internal/bpms/1.0/assignments?pagenumber=1&simulation=N&codreport=6x6Iw2g5qn7z%252Bt743f1Lbg%253D%253D&reporttype=mytasks&codflowexecute=&=&codtask=&taskstatus=S&field=&operator=Equal&fieldvaluetext=&fielddatasource=&fieldvalue=&requester=&codrequester=&=&tasklate=Late&startbegin=&startend=&sortfield=&sortdirection=ASC&keyword=&chkReload=on`;
+  const keywords = ['corrigir', 'correção', 'correcao', 'ajuste', 'ajustar'];
+  const allTasks: TaskItem[] = [];
 
-  const headers = {
-    "Accept": "*/*",
-    "Content-Type": "application/json",
-    "x-sml-antiforgerytoken": token
-  };
+  console.log('SLA Blocker: Verificando tarefas em atraso com múltiplas palavras-chave...');
 
   try {
-    console.log('SLA Blocker: Verificando tarefas em atraso...');
-    const response = await fetch(url, {
-      method: "GET",
-      headers: headers,
-      credentials: "include"
-    });
+    // Para cada palavra-chave, fazer busca paginada
+    for (const keyword of keywords) {
+      console.log(`SLA Blocker: Buscando tarefas com palavra-chave: "${keyword}"`);
+      let page = 1;
+      let hasMorePages = true;
 
-    if (response.ok) {
-      const data: TaskResponse = await response.json();
-      if (data.success && data.success.itens && data.success.itens.length > 0) {
-        console.log(`SLA Blocker: ${data.success.itens.length} tarefas em atraso encontradas`);
-        return data.success.itens;
-      } else {
-        console.log("SLA Blocker: Nenhuma tarefa em atraso encontrada");
-        return [];
+      while (hasMorePages) {
+        const url = `${window.location.origin}/api/internal/bpms/1.0/assignments?pagenumber=${page}&simulation=N&codreport=6x6Iw2g5qn7z%252Bt743f1Lbg%253D%253D&reporttype=mytasks&codflowexecute=&=&codtask=&taskstatus=S&field=&operator=Equal&fieldvaluetext=&fielddatasource=&fieldvalue=&requester=&codrequester=&=&tasklate=Late&startbegin=&startend=&sortfield=dt&sortdirection=ASC&keyword=${encodeURIComponent(keyword)}`;
+
+        const headers = {
+          "Accept": "*/*",
+          "Content-Type": "application/json",
+          "x-sml-antiforgerytoken": token
+        };
+
+        const response = await fetch(url, {
+          method: "GET",
+          headers: headers,
+          credentials: "include"
+        });
+
+        if (response.ok) {
+          const data: TaskResponse = await response.json();
+          
+          if (data.success && data.success.itens && data.success.itens.length > 0) {
+            console.log(`SLA Blocker: Página ${page} - ${data.success.itens.length} tarefas encontradas para "${keyword}"`);
+            
+            // Adicionar tarefas únicas (evitar duplicatas por CFE)
+            data.success.itens.forEach(newTask => {
+              const exists = allTasks.some(existingTask => existingTask.cfe === newTask.cfe);
+              if (!exists) {
+                allTasks.push(newTask);
+              }
+            });
+
+            page++;
+          } else {
+            // Não há mais itens nesta página
+            hasMorePages = false;
+            console.log(`SLA Blocker: Fim da paginação para "${keyword}" na página ${page}`);
+          }
+        } else {
+          console.error(`Erro HTTP na página ${page} para "${keyword}":`, response.status, response.statusText);
+          hasMorePages = false;
+        }
+
+        // Adicionar pequeno delay entre requisições para evitar sobrecarga
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
-    } else {
-      console.error("Erro HTTP:", response.status, response.statusText);
-      return null;
     }
+
+    console.log(`SLA Blocker: Total de ${allTasks.length} tarefas únicas de correção/ajuste encontradas`);
+    return allTasks;
+
   } catch (error) {
     console.error("Erro na requisição:", error);
     return null;
@@ -184,7 +215,7 @@ function createModal(htmlContent: string, tasks: TaskItem[]): void {
   const tableRows = tasks.map(item => `
     <tr>
       <td class="border border-gray-300 px-4 py-2">
-        <a href="${item.lk}" data-key="${item.cfetp}" tabindex="0" role="button" class="text-blue-600 hover:text-blue-800 underline">
+        <a href="${item.lk}" data-key="${item.cfetp}" tabindex="0" role="button" class="text-blue-600 hover:text-blue-800 underline" target="_blank" rel="noopener noreferrer">
           ${item.cfe}
         </a>
       </td>
