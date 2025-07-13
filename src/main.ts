@@ -6,18 +6,13 @@ interface LicenseValidationResponse {
 
 // Função para extrair parâmetros da URL do módulo
 function getLicenseKey(): string | null {
-  const currentScript = document.currentScript as HTMLScriptElement;
-  if (currentScript?.src) {
-    const url = new URL(currentScript.src);
-    return url.searchParams.get('key');
-  }
-  
-  // Fallback: tentar através de import.meta.url se disponível
+  // Em módulos ES, usar import.meta.url é a forma correta
   if (typeof import.meta !== 'undefined' && import.meta.url) {
     const url = new URL(import.meta.url);
     return url.searchParams.get('key');
   }
   
+  console.error('import.meta.url não disponível - certifique-se de usar como módulo ES');
   return null;
 }
 
@@ -120,44 +115,47 @@ function createModal(htmlContent: string): void {
   document.addEventListener('keydown', handleEscape);
 }
 
-// Função principal
-async function main(): Promise<void> {
-  // 1. Verificar se deve executar baseado na URL
-  if (!shouldExecute()) {
-    console.log('Módulo SLA Blocker: URL não atende aos critérios (/my e /services)');
-    return;
+// IIFE assíncrono - execução principal do módulo
+(async () => {
+  try {
+    // 1. Verificar se deve executar baseado na URL
+    if (!shouldExecute()) {
+      console.log('Módulo SLA Blocker: URL não atende aos critérios (/my e /services)');
+      return;
+    }
+    
+    // 2. Extrair chave de licença
+    const licenseKey = getLicenseKey();
+    if (!licenseKey) {
+      console.error('Módulo SLA Blocker: Chave de licença não encontrada na URL');
+      return;
+    }
+    
+    // 3. Validar licença ANTES de fazer qualquer coisa
+    const isValidLicense = await validateLicense(licenseKey);
+    if (!isValidLicense) {
+      return; // Parar execução se licença inválida
+    }
+    
+    console.log('Módulo SLA Blocker: Licença válida, inicializando...');
+    
+    // 4. Aguardar DOM se necessário
+    if (document.readyState === 'loading') {
+      await new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve));
+    }
+    
+    // 5. Injetar estilos (será substituído pelo CSS real durante o build)
+    const css = '__CSS_CONTENT__';
+    injectStyles(css);
+    
+    // 6. Criar e mostrar modal (será substituído pelo HTML real durante o build)
+    const htmlContent = '__HTML_CONTENT__';
+    createModal(htmlContent);
+    
+  } catch (error) {
+    console.error('Erro no módulo SLA Blocker:', error);
   }
-  
-  // 2. Extrair chave de licença
-  const licenseKey = getLicenseKey();
-  if (!licenseKey) {
-    console.error('Módulo SLA Blocker: Chave de licença não encontrada na URL');
-    return;
-  }
-  
-  // 3. Validar licença
-  const isValidLicense = await validateLicense(licenseKey);
-  if (!isValidLicense) {
-    return; // Parar execução se licença inválida
-  }
-  
-  console.log('Módulo SLA Blocker: Licença válida, inicializando...');
-  
-  // 4. Injetar estilos (será substituído pelo CSS real durante o build)
-  const css = '__CSS_CONTENT__';
-  injectStyles(css);
-  
-  // 5. Criar e mostrar modal (será substituído pelo HTML real durante o build)
-  const htmlContent = '__HTML_CONTENT__';
-  createModal(htmlContent);
-}
-
-// Executar quando o DOM estiver pronto
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', main);
-} else {
-  main();
-}
+})();
 
 // Exportar para debugging (opcional)
-export { main, validateLicense, shouldExecute };
+export { validateLicense, shouldExecute };
