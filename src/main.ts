@@ -1,12 +1,23 @@
-// Tipos para a API de validação de licença
+// ===== TIPOS =====
 interface LicenseValidationResponse {
   valid: boolean;
   message?: string;
 }
 
-// Função para extrair parâmetros da URL do módulo
+interface CachedLicense {
+  key: string;
+  valid: boolean;
+  timestamp: number;
+  expiresAt: number;
+}
+
+// ===== UTILITÁRIOS =====
+function shouldExecute(): boolean {
+  const pathname = window.location.pathname.toLowerCase();
+  return pathname.includes('/my') && pathname.includes('/services');
+}
+
 function getLicenseKey(): string | null {
-  // Em módulos ES, usar import.meta.url é a forma correta
   if (typeof import.meta !== 'undefined' && import.meta.url) {
     const url = new URL(import.meta.url);
     return url.searchParams.get('key');
@@ -16,61 +27,92 @@ function getLicenseKey(): string | null {
   return null;
 }
 
-// Função para validar a licença
+function dispatchLicenseInvalidEvent(key: string, error?: string): void {
+  const event = new CustomEvent('licenseInvalid', {
+    detail: {
+      origin: window.location.origin,
+      key,
+      ...(error && { error })
+    }
+  });
+  window.dispatchEvent(event);
+}
+
+// ===== VALIDAÇÃO DE LICENÇA =====
+// Cache de licenças (válido por 1 dia)
+const LICENSE_CACHE_DURATION = 24 * 60 * 60 * 1000; // 1 dia em ms
+const licenseCache = new Map<string, CachedLicense>();
+
+function getCachedLicense(key: string): boolean | null {
+  const cached = licenseCache.get(key);
+  if (!cached) return null;
+  
+  const now = Date.now();
+  if (now > cached.expiresAt) {
+    // Cache expirado, remover
+    licenseCache.delete(key);
+    return null;
+  }
+  
+  console.log('SLA Blocker: Licença encontrada no cache');
+  return cached.valid;
+}
+
+function setCachedLicense(key: string, valid: boolean): void {
+  const now = Date.now();
+  const cached: CachedLicense = {
+    key,
+    valid,
+    timestamp: now,
+    expiresAt: now + LICENSE_CACHE_DURATION
+  };
+  licenseCache.set(key, cached);
+}
+
 async function validateLicense(key: string): Promise<boolean> {
+  // Verificar cache primeiro
+  const cachedResult = getCachedLicense(key);
+  if (cachedResult !== null) {
+    if (!cachedResult) {
+      dispatchLicenseInvalidEvent(key, 'Licença inválida (cache)');
+    }
+    return cachedResult;
+  }
+  
   try {
+    console.log('SLA Blocker: Validando licença no servidor...');
     const response = await fetch(`https://validador-web.vercel.app/validate-license?key=${encodeURIComponent(key)}`);
     const data: LicenseValidationResponse = await response.json();
     
+    // Armazenar resultado no cache
+    setCachedLicense(key, data.valid);
+    
     if (!data.valid) {
       console.error('Licença inválida:', data.message || 'Chave de licença não autorizada');
-      
-      // Disparar evento customizado
-      const event = new CustomEvent('licenseInvalid', {
-        detail: {
-          origin: window.location.origin,
-          key: key
-        }
-      });
-      window.dispatchEvent(event);
-      
+      dispatchLicenseInvalidEvent(key);
       return false;
     }
     
     return true;
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
     console.error('Erro ao validar licença:', error);
     
-    // Disparar evento customizado em caso de erro
-    const event = new CustomEvent('licenseInvalid', {
-      detail: {
-        origin: window.location.origin,
-        key: key,
-        error: error instanceof Error ? error.message : 'Erro desconhecido'
-      }
-    });
-    window.dispatchEvent(event);
-    
+    // Em caso de erro, não cachear resultado negativo por muito tempo
+    // Apenas disparar o evento de licença inválida
+    dispatchLicenseInvalidEvent(key, errorMessage);
     return false;
   }
 }
 
-// Função para verificar se a URL atende aos critérios
-function shouldExecute(): boolean {
-  const pathname = window.location.pathname.toLowerCase();
-  return pathname.includes('/my') && pathname.includes('/services');
-}
-
-// Função para injetar CSS
+// ===== UI =====
 function injectStyles(css: string): void {
   const style = document.createElement('style');
   style.textContent = css;
   document.head.appendChild(style);
 }
 
-// Função para criar e mostrar o modal
 function createModal(htmlContent: string): void {
-  // Criar container temporário para converter HTML string em elementos
   const tempDiv = document.createElement('div');
   tempDiv.innerHTML = htmlContent;
   
@@ -80,30 +122,23 @@ function createModal(htmlContent: string): void {
     return;
   }
   
-  // Adicionar modal ao body
   document.body.appendChild(modalElement);
   
-  // Configurar eventos de fechamento
-  const closeX = modalElement.querySelector('#sla-modal-close-x') as HTMLButtonElement;
-  const closeOk = modalElement.querySelector('#sla-modal-close-ok') as HTMLButtonElement;
+  // Configurar fechamento do modal
+  const closeModal = () => modalElement.remove();
+  
+  // Selectors dos elementos de fechamento
+  const selectors = ['#sla-modal-close-x', '#sla-modal-close-ok'];
+  selectors.forEach(selector => {
+    const element = modalElement.querySelector(selector) as HTMLButtonElement;
+    element?.addEventListener('click', closeModal);
+  });
+  
+  // Fechar ao clicar no overlay
   const overlay = modalElement.querySelector('#sla-modal-overlay') as HTMLElement;
-  
-  const closeModal = () => {
-    modalElement.remove();
-  };
-  
-  // Event listeners
-  if (closeX) closeX.addEventListener('click', closeModal);
-  if (closeOk) closeOk.addEventListener('click', closeModal);
-  
-  // Fechar ao clicar no overlay (fundo)
-  if (overlay) {
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) {
-        closeModal();
-      }
-    });
-  }
+  overlay?.addEventListener('click', (e) => {
+    if (e.target === overlay) closeModal();
+  });
   
   // Fechar com ESC
   const handleEscape = (e: KeyboardEvent) => {
@@ -115,45 +150,39 @@ function createModal(htmlContent: string): void {
   document.addEventListener('keydown', handleEscape);
 }
 
-// IIFE assíncrono - execução principal do módulo
+// ===== EXECUÇÃO PRINCIPAL =====
 (async () => {
   try {
-    // 1. Verificar se deve executar baseado na URL
+    // 1. Verificações preliminares (sem requisições HTTP)
     if (!shouldExecute()) {
-      console.log('Módulo SLA Blocker: URL não atende aos critérios (/my e /services)');
+      console.log('SLA Blocker: URL não atende aos critérios (/my e /services)');
       return;
     }
     
-    // 2. Extrair chave de licença
     const licenseKey = getLicenseKey();
     if (!licenseKey) {
-      console.error('Módulo SLA Blocker: Chave de licença não encontrada na URL');
+      console.error('SLA Blocker: Chave de licença não encontrada na URL');
       return;
     }
     
-    // 3. Validar licença ANTES de fazer qualquer coisa
-    const isValidLicense = await validateLicense(licenseKey);
-    if (!isValidLicense) {
-      return; // Parar execução se licença inválida
+    // 2. Validação de licença
+    if (!(await validateLicense(licenseKey))) {
+      return; // Eventos já disparados na função validateLicense
     }
     
-    console.log('Módulo SLA Blocker: Licença válida, inicializando...');
+    console.log('SLA Blocker: Licença válida, inicializando...');
     
-    // 4. Aguardar DOM se necessário
+    // 3. Aguardar DOM se necessário
     if (document.readyState === 'loading') {
       await new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve));
     }
     
-    // 5. Injetar estilos (será substituído pelo CSS real durante o build)
-    const css = '__CSS_CONTENT__';
-    injectStyles(css);
-    
-    // 6. Criar e mostrar modal (será substituído pelo HTML real durante o build)
-    const htmlContent = '__HTML_CONTENT__';
-    createModal(htmlContent);
+    // 4. Renderizar interface
+    injectStyles('__CSS_CONTENT__');
+    createModal('__HTML_CONTENT__');
     
   } catch (error) {
-    console.error('Erro no módulo SLA Blocker:', error);
+    console.error('SLA Blocker: Erro crítico:', error);
   }
 })();
 
