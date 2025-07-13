@@ -1,43 +1,82 @@
-# 🚀 Instruções para Habilitar GitHub Pages
+# 🚀 Deploy Automático - GitHub Pages
 
-## ⚠️ IMPORTANTE: Habilite o GitHub Pages ANTES de fazer push
+Este projeto está configurado para deploy automático usando GitHub Actions. **Não é necessário fazer build manualmente!**
 
-### Passos para configurar GitHub Pages:
+## ⚠️ PRIMEIRO: Configure o GitHub Pages
 
-1. **Vá para as Configurações do Repositório**:
-   - No GitHub, acesse seu repositório
-   - Clique em **Settings** (Configurações)
+**IMPORTANTE**: Antes do primeiro push, você DEVE habilitar o GitHub Pages no repositório:
 
-2. **Navegue até Pages**:
-   - No menu lateral esquerdo, procure por **Pages**
-   - Clique em **Pages**
+### 1. Habilitar GitHub Pages
 
-3. **Configure a Fonte**:
-   - Em **Source** (Fonte), selecione: **GitHub Actions**
-   - **NÃO** selecione "Deploy from a branch"
+1. **Acesse seu repositório no GitHub**
+2. **Vá para `Settings` → `Pages`**
+3. **Em "Source", selecione: `GitHub Actions`** (não "Deploy from a branch")
+4. **Clique em "Save"**
 
-4. **Salve as Configurações**:
-   - Clique em **Save** (Salvar)
+> ✅ **Esta configuração só precisa ser feita uma vez!**
 
-5. **Faça o Push**:
+### 2. Verificar Permissões
+
+O workflow já está configurado com as permissões corretas:
+```yaml
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+```
+
+## 🔄 Como Usar
+
+Após habilitar o GitHub Pages:
+
+### Fazer Deploy
+
+1. **Edite os arquivos** em `src/` (não edite `dist/`)
+2. **Commit e push** para a branch `main`:
    ```bash
    git add .
-   git commit -m "Initial commit"
+   git commit -m "Suas alterações"
    git push origin main
    ```
 
-6. **Aguarde o Deploy**:
-   - Vá para a aba **Actions** no GitHub
-   - Aguarde o workflow "Build and Deploy to GitHub Pages" terminar
-   - Seu módulo estará disponível em: `https://SEU_USUARIO.github.io/SEU_REPO/main.js`
+### O que acontece automaticamente
 
-## 🔧 Se der erro "Pages not enabled":
+1. ✅ **GitHub Actions detecta** o push na branch `main`
+2. ✅ **Instala dependências** (`npm ci`)
+3. ✅ **Executa o build** (`npm run build`)
+4. ✅ **Gera `main.js`** otimizado com CSS/HTML embutidos
+5. ✅ **Cria `index.html`** para navegação no GitHub Pages
+6. ✅ **Faz deploy** para `https://USERNAME.github.io/REPO`
 
-1. Certifique-se de que seguiu todos os passos acima
-2. Aguarde alguns minutos após habilitar o Pages
-3. Tente fazer um novo push:
-   ```bash
-   git commit --allow-empty -m "Trigger Pages deploy"
+## � Solução de Problemas
+
+### Erro: "Get Pages site failed"
+
+**Causa**: GitHub Pages não está habilitado ou configurado incorretamente.
+
+**Solução**:
+1. Vá para `Settings` → `Pages` no seu repositório
+2. Certifique-se que "Source" está como "GitHub Actions"
+3. Se estiver como "Deploy from a branch", mude para "GitHub Actions"
+4. Salve e refaça o push
+
+### Erro: "Not Found" no deploy
+
+**Causa**: Repository não tem Pages habilitado.
+
+**Solução**:
+1. Siga os passos da seção "1. Habilitar GitHub Pages" acima
+2. Aguarde alguns minutos após salvar
+3. Faça um novo push para reexecutar o workflow
+
+## 📋 Checklist Final
+
+Antes de fazer o primeiro push:
+
+- [ ] ✅ GitHub Pages habilitado em `Settings` → `Pages`
+- [ ] ✅ Source configurado como "GitHub Actions"
+- [ ] ✅ Configurações salvas
+- [ ] ✅ Pronto para push!
    git push origin main
    ```
 
