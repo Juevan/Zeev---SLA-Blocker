@@ -2,28 +2,47 @@
 
 Este projeto está configurado para deploy automático usando GitHub Actions. **Não é necessário fazer build manualmente!**
 
-## ⚠️ PRIMEIRO: Configure o GitHub Pages
+## ⚠️ CONFIGURAÇÃO AUTOMÁTICA
 
-**IMPORTANTE**: Antes do primeiro push, você DEVE habilitar o GitHub Pages no repositório:
+**IMPORTANTE**: O GitHub Actions agora configura automaticamente o GitHub Pages! 
 
-### 1. Habilitar GitHub Pages
-
-1. **Acesse seu repositório no GitHub**
-2. **Vá para `Settings` → `Pages`**
-3. **Em "Source", selecione: `GitHub Actions`** (não "Deploy from a branch")
-4. **Clique em "Save"**
-
-> ✅ **Esta configuração só precisa ser feita uma vez!**
-
-### 2. Verificar Permissões
-
-O workflow já está configurado com as permissões corretas:
+O workflow inclui:
 ```yaml
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+- name: Configure Pages
+  uses: actions/configure-pages@v4
+  with:
+    enablement: true
 ```
+
+### Como Usar
+
+1. **Faça push** para a branch `main`
+2. **GitHub Actions automaticamente**:
+   - ✅ Configura o GitHub Pages
+   - ✅ Instala dependências (`npm ci`)
+   - ✅ Executa o build (`npm run build`)
+   - ✅ Gera `main.js` otimizado com CSS/HTML embutidos
+   - ✅ Cria `index.html` para navegação
+   - ✅ Faz deploy para `https://Juevan.github.io/Zeev---SLA-Blocker`
+
+### Fazer Deploy
+
+```bash
+git add .
+git commit -m "Suas alterações"
+git push origin main
+```
+
+## 🐛 Solução de Problemas
+
+### Erro: "Get Pages site failed"
+
+**Causa**: Primeira execução do workflow - Pages será configurado automaticamente.
+
+**Solução**: 
+1. ✅ O workflow vai configurar automaticamente na primeira execução
+2. ✅ Aguarde a conclusão do workflow
+3. ✅ Próximos pushes funcionarão normalmente
 
 ## 🔄 Como Usar
 
