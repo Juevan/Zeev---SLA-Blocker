@@ -1,0 +1,60 @@
+<!-- Modal de Tarefas SLA -->
+<div id="sla-modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <div class="bg-white rounded-lg shadow-xl w-[70%] max-w-4xl max-h-[80vh] overflow-auto">
+    <!-- Header -->
+    <div class="flex justify-between items-center p-6 border-b border-gray-200">
+      <h2 class="text-2xl font-bold text-gray-800">Atenção</h2>
+      <button id="sla-modal-close-x" class="text-gray-400 hover:text-gray-600 text-2xl font-bold">
+        ×
+      </button>
+    </div>
+    
+    <!-- Content -->
+    <div class="p-6">
+      <p class="text-lg text-gray-700 mb-6">Você possui as seguintes tarefas de correção:</p>
+      
+      <!-- Tabela -->
+      <div class="overflow-x-auto">
+        <table class="w-full border-collapse border border-gray-300">
+          <thead>
+            <tr class="bg-gray-100">
+              <th class="border border-gray-300 px-4 py-2 text-left font-semibold">N° Tarefa</th>
+              <th class="border border-gray-300 px-4 py-2 text-left font-semibold">SLA</th>
+              <th class="border border-gray-300 px-4 py-2 text-left font-semibold">Nome da Tarefa</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="border border-gray-300 px-4 py-2">001</td>
+              <td class="border border-gray-300 px-4 py-2 text-red-600 font-semibold">Vencido</td>
+              <td class="border border-gray-300 px-4 py-2">Correção de Bug Crítico - Sistema de Login</td>
+            </tr>
+            <tr class="bg-gray-50">
+              <td class="border border-gray-300 px-4 py-2">002</td>
+              <td class="border border-gray-300 px-4 py-2 text-yellow-600 font-semibold">2h restantes</td>
+              <td class="border border-gray-300 px-4 py-2">Ajuste de Performance - Relatórios</td>
+            </tr>
+            <tr>
+              <td class="border border-gray-300 px-4 py-2">003</td>
+              <td class="border border-gray-300 px-4 py-2 text-green-600 font-semibold">1 dia restante</td>
+              <td class="border border-gray-300 px-4 py-2">Implementação de Nova Funcionalidade</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+    <!-- Footer -->
+    <div class="flex justify-between items-center p-6 border-t border-gray-200">
+      <p class="text-sm text-gray-600">
+        © Antonio Juevan — 
+        <a href="https://github.com/USERNAME/REPO/blob/main/LICENSE" target="_blank" class="text-blue-600 hover:text-blue-800 underline">
+          Licença do Projeto
+        </a>
+      </p>
+      <button id="sla-modal-close-ok" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors">
+        OK
+      </button>
+    </div>
+  </div>
+</div>
