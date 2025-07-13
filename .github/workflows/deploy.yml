@@ -35,6 +35,31 @@ jobs:
           npm ci
           npm run build
 
+      - name: Create .nojekyll and .htaccess for correct MIME types
+        run: |
+          # Criar .nojekyll para evitar processamento Jekyll
+          touch dist/.nojekyll
+          
+          # Criar .htaccess para configurar MIME types corretos
+          cat > dist/.htaccess << 'EOF'
+          # Configurar MIME types para módulos ES
+          AddType application/javascript .js
+          AddType application/javascript .mjs
+          
+          # Headers CORS para permitir carregamento de módulos
+          <FilesMatch "\.(js|mjs)$">
+            Header set Access-Control-Allow-Origin "*"
+            Header set Access-Control-Allow-Methods "GET, OPTIONS"
+            Header set Access-Control-Allow-Headers "Content-Type"
+          </FilesMatch>
+          
+          # Cache para melhor performance
+          <FilesMatch "\.(js|mjs|css)$">
+            ExpiresActive On
+            ExpiresDefault "access plus 1 hour"
+          </FilesMatch>
+          EOF
+
       - name: Create GitHub Pages index.html
         run: |
           cat > dist/index.html << 'EOF'
