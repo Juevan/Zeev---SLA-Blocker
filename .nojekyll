@@ -1,0 +1,6 @@
+# GitHub Pages Configuration
+
+# Este arquivo ajuda o GitHub a entender que este repositório
+# deve usar GitHub Actions para deploy, não Jekyll
+
+# Para mais informações: https://docs.github.com/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site

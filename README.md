@@ -53,6 +53,14 @@ ls dist/
 
 ### 🚀 Deploy Automático
 
+**⚠️ PRIMEIRO: Habilite o GitHub Pages**
+
+1. **Vá para Settings → Pages** no seu repositório GitHub
+2. **Em Source, selecione: "GitHub Actions"**
+3. **Salve as configurações**
+
+Depois:
+
 **Não é necessário fazer build manualmente!** O GitHub Actions faz tudo automaticamente:
 
 1. **Faça suas alterações** no código fonte (`src/`)
@@ -67,6 +75,8 @@ ls dist/
    - ✅ Executa o build
    - ✅ Gera `main.js` e `index.html`
    - ✅ Faz deploy no GitHub Pages
+
+📋 **Ver instruções detalhadas**: [DEPLOY.md](DEPLOY.md)
 
 ### Estrutura do Projeto
 
