@@ -33,6 +33,92 @@ jobs:
           npm ci
           npm run build
 
+      - name: Create GitHub Pages index.html
+        run: |
+          cat > dist/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="pt-BR">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Zeev SLA Blocker - Módulo JavaScript</title>
+              <style>
+                  body {
+                      font-family: Arial, sans-serif;
+                      max-width: 800px;
+                      margin: 50px auto;
+                      padding: 20px;
+                      line-height: 1.6;
+                      color: #333;
+                  }
+                  .code-block {
+                      background: #f4f4f4;
+                      border: 1px solid #ddd;
+                      border-radius: 5px;
+                      padding: 15px;
+                      margin: 20px 0;
+                      overflow-x: auto;
+                  }
+                  .highlight {
+                      background: #fff3cd;
+                      padding: 10px;
+                      border-radius: 5px;
+                      border-left: 4px solid #ffc107;
+                      margin: 15px 0;
+                  }
+                  .success {
+                      background: #d4edda;
+                      border-left: 4px solid #28a745;
+                  }
+              </style>
+          </head>
+          <body>
+              <h1>🚀 Zeev SLA Blocker</h1>
+              
+              <p>Este é um módulo JavaScript ES que exibe um modal com tarefas de correção pendentes.</p>
+              
+              <div class="highlight success">
+                  <h3>✅ Módulo Disponível</h3>
+                  <p>O módulo está disponível nesta URL:</p>
+                  <div class="code-block">
+                      <code>https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/main.js</code>
+                  </div>
+              </div>
+              
+              <h2>📖 Como Usar</h2>
+              <p>Adicione esta linha no final do <code>&lt;body&gt;</code> da sua página HTML:</p>
+              
+              <div class="code-block">
+                  <code>&lt;script type="module" src="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/main.js?key=SUA_CHAVE"&gt;&lt;/script&gt;</code>
+              </div>
+              
+              <div class="highlight">
+                  <h3>⚠️ Importante</h3>
+                  <ul>
+                      <li>Substitua <code>SUA_CHAVE</code> pela sua chave de licença válida</li>
+                      <li>O modal só aparece se a URL contiver <code>/my</code> E <code>/services</code></li>
+                  </ul>
+              </div>
+              
+              <h2>🔧 Funcionalidades</h2>
+              <ul>
+                  <li>✅ Verificação automática de URL</li>
+                  <li>🔐 Validação de licença via API</li>
+                  <li>🎨 Modal responsivo com Tailwind CSS</li>
+                  <li>📱 Ocupa 70% da tela</li>
+                  <li>🛡️ Overlay bloqueante</li>
+                  <li>⚡ CSS e HTML embutidos no JavaScript</li>
+              </ul>
+              
+              <h2>📄 Documentação</h2>
+              <p>Para mais informações, consulte o <a href="https://github.com/${{ github.repository }}">repositório no GitHub</a>.</p>
+              
+              <hr>
+              <p><small>© 2025 Antonio Juevan - Licença MIT</small></p>
+          </body>
+          </html>
+          EOF
+
       - name: Enable GitHub Pages
         uses: actions/configure-pages@v4
 
