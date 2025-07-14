@@ -312,58 +312,65 @@ async function verificaAtrasos(): Promise<TaskItem[]> {
   const taskSet = new Set<string>();
 
   try {
-    const promises = keywords.map(async (keyword) => {
-      let page = 1;
-      const tasks: TaskItem[] = [];
-      const maxPages = 10;
+    let page = 1;
+    const batchSize = 3;
 
-      while (page <= maxPages) {
-        const url = `${window.location.origin}/api/internal/bpms/1.0/assignments?pagenumber=${page}&simulation=N&codreport=Kju5G9GOJbU7cHRcMb%252BRBA%253D%253D&reporttype=mytasks&codflowexecute=&=&codtask=&taskstatus=S&field=&operator=Equal&fieldvaluetext=&fielddatasource=&fieldvalue=&requester=&codrequester=&=&tasklate=Late&startbegin=&startend=&sortfield=dt&sortdirection=ASC&keyword=${encodeURIComponent(keyword)}`;
+    while (true) {
+      const promises = [];
+      for (let i = 0; i < batchSize; i++) {
+        const currentPage = page + i;
+        const url = `${window.location.origin}/api/internal/bpms/1.0/assignments?pagenumber=${currentPage}&simulation=N&codreport=Kju5G9GOJbU7cHRcMb%252BRBA%253D%253D&reporttype=mytasks&codflowexecute=&=&codtask=&taskstatus=S&field=&operator=Equal&fieldvaluetext=&fielddatasource=&fieldvalue=&requester=&codrequester=&=&tasklate=Late&startbegin=&startend=&sortfield=dt&sortdirection=ASC`;
 
-        const response = await fetch(url, {
-          method: "GET",
-          headers: {
-            "Accept": "*/*",
-            "Content-Type": "application/json",
-            "x-sml-antiforgerytoken": token
-          },
-          credentials: "include"
-        });
+        promises.push(
+          fetch(url, {
+            method: "GET",
+            headers: {
+              "Accept": "*/*",
+              "Content-Type": "application/json",
+              "x-sml-antiforgerytoken": token
+            },
+            credentials: "include"
+          }).then(async response => {
+            if (response.ok) {
+              const data: TaskResponse = await response.json();
+              return { page: currentPage, data: data.success?.itens || [] };
+            }
+            return { page: currentPage, data: [] };
+          }).catch(() => ({ page: currentPage, data: [] }))
+        );
+      }
 
-        if (response.ok) {
-          const data: TaskResponse = await response.json();
+      const results = await Promise.all(promises);
+      let hasData = false;
+
+      results.sort((a, b) => a.page - b.page);
+
+      for (const result of results) {
+        if (result.data.length > 0) {
+          hasData = true;
           
-          if (data.success?.itens?.length > 0) {
-            const filteredTasks = data.success.itens.filter(task => {
-              const taskName = task.t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-              return keywords.some(kw => 
-                taskName.includes(kw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''))
-              );
-            });
-            
-            tasks.push(...filteredTasks);
-            page++;
-          } else {
-            break;
-          }
-        } else {
-          break;
+          const filteredTasks = result.data.filter(task => {
+            const taskName = task.t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            return keywords.some(kw => 
+              taskName.includes(kw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''))
+            );
+          });
+
+          filteredTasks.forEach(task => {
+            if (!taskSet.has(task.cfe)) {
+              taskSet.add(task.cfe);
+              allTasks.push(task);
+            }
+          });
         }
       }
 
-      return tasks;
-    });
+      if (!hasData) {
+        break;
+      }
 
-    const results = await Promise.all(promises);
-    
-    results.forEach(tasks => {
-      tasks.forEach(task => {
-        if (!taskSet.has(task.cfe)) {
-          taskSet.add(task.cfe);
-          allTasks.push(task);
-        }
-      });
-    });
+      page += batchSize;
+    }
 
     return allTasks;
 
