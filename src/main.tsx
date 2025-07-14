@@ -106,7 +106,8 @@ function SLAModal({ tasks, onClose }: SLAModalProps): JSX.Element {
   return (
     <div 
       id="sla-modal-overlay" 
-      className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-[94]"
+      className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center"
+      style={{ zIndex: 94 }}
       onClick={handleOverlayClick}
     >
       <div className="bg-white rounded-lg shadow-xl w-[70%] max-w-4xl max-h-[80vh] overflow-auto">
@@ -124,10 +125,7 @@ function SLAModal({ tasks, onClose }: SLAModalProps): JSX.Element {
         
         {/* Content */}
         <div className="p-6">
-          <p className="text-lg text-gray-700 mb-6">
-            Você possui um total de <strong className="text-red-600">{totalSolicitacoes}</strong>{' '}
-            {totalSolicitacoes === 1 ? 'solicitação' : 'solicitações'} com o SLA expirado:
-          </p>
+          <p className="text-lg text-gray-700 mb-6">Você possui as seguintes tarefas de correção:</p>
           
           <TaskTable tasks={tasks} />
         </div>
