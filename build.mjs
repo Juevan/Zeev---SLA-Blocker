@@ -1,5 +1,5 @@
 import { build } from 'esbuild';
-import { readFileSync, writeFileSync, unlinkSync, mkdirSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, unlinkSync, mkdirSync, existsSync, copyFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -17,13 +17,15 @@ async function buildProject() {
       console.log('📁 Pasta dist criada');
     }
     
+    // Criar pasta temporária para src se não existir
+    const tempSrcPath = join(__dirname, 'temp-src');
+    if (!existsSync(tempSrcPath)) {
+      mkdirSync(tempSrcPath, { recursive: true });
+    }
+    
     // Ler o CSS gerado pelo Tailwind
     const cssPath = join(__dirname, 'dist', 'styles.css');
     const cssContent = readFileSync(cssPath, 'utf-8');
-    
-    // Ler o código TypeScript
-    const tsPath = join(__dirname, 'src', 'main.tsx');
-    let tsContent = readFileSync(tsPath, 'utf-8');
     
     // Função para escapar string para JavaScript
     function escapeForJS(str) {
@@ -36,16 +38,25 @@ async function buildProject() {
         .replace(/\t/g, '\\t');
     }
     
-    // Substituir placeholders
-    tsContent = tsContent.replace('__CSS_CONTENT__', escapeForJS(cssContent));
+    // Copiar alerts.tsx para pasta temporária
+    const alertsSourcePath = join(__dirname, 'src', 'alerts.tsx');
+    const alertsTempPath = join(tempSrcPath, 'alerts.tsx');
+    copyFileSync(alertsSourcePath, alertsTempPath);
     
-    // Criar arquivo temporário com conteúdo processado
-    const tempTsPath = join(__dirname, 'temp-main.tsx');
-    writeFileSync(tempTsPath, tsContent);
+    // Ler e processar o arquivo main.tsx
+    const mainSourcePath = join(__dirname, 'src', 'main.tsx');
+    let mainContent = readFileSync(mainSourcePath, 'utf-8');
+    
+    // Substituir placeholders
+    mainContent = mainContent.replace('__CSS_CONTENT__', escapeForJS(cssContent));
+    
+    // Criar arquivo temporário processado
+    const mainTempPath = join(tempSrcPath, 'main.tsx');
+    writeFileSync(mainTempPath, mainContent);
     
     // Build com esbuild
     await build({
-      entryPoints: [tempTsPath],
+      entryPoints: [mainTempPath],
       bundle: true,
       minify: true,
       format: 'esm',
@@ -62,8 +73,14 @@ async function buildProject() {
       }
     });
     
-    // Remover arquivo temporário
-    unlinkSync(tempTsPath);
+    // Remover pasta temporária
+    unlinkSync(mainTempPath);
+    unlinkSync(alertsTempPath);
+    try {
+      unlinkSync(tempSrcPath);
+    } catch (error) {
+      // Pasta pode não estar vazia, ignorar
+    }
     
     // Remover CSS temporário (já está embutido no JS)
     const tempCssPath = join(__dirname, 'dist', 'styles.css');
@@ -78,6 +95,20 @@ async function buildProject() {
     
   } catch (error) {
     console.error('❌ Erro durante o build:', error);
+    
+    // Limpar arquivos temporários em caso de erro
+    try {
+      const tempSrcPath = join(__dirname, 'temp-src');
+      const mainTempPath = join(tempSrcPath, 'main.tsx');
+      const alertsTempPath = join(tempSrcPath, 'alerts.tsx');
+      
+      unlinkSync(mainTempPath);
+      unlinkSync(alertsTempPath);
+      unlinkSync(tempSrcPath);
+    } catch (cleanupError) {
+      // Ignorar erros de limpeza
+    }
+    
     process.exit(1);
   }
 }
