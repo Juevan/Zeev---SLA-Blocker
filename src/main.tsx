@@ -83,7 +83,7 @@ interface SLAModalProps {
 function SLAModal({ tasks, onClose }: SLAModalProps): JSX.Element {
   const totalSolicitacoes = tasks.length;
 
-  const handleOverlayClick = (e: Event) => {
+  const handleOverlayClick = (e: MouseEvent) => {
     if (e.target === e.currentTarget) {
       onClose();
     }
@@ -106,7 +106,8 @@ function SLAModal({ tasks, onClose }: SLAModalProps): JSX.Element {
   return (
     <div 
       id="sla-modal-overlay" 
-      className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-[94]"
+      className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center"
+      style={{ zIndex: 999999 }}
       onClick={handleOverlayClick}
     >
       <div className="bg-white rounded-lg shadow-xl w-[70%] max-w-4xl max-h-[80vh] overflow-auto">
@@ -300,12 +301,16 @@ async function verificaAtrasos(): Promise<TaskItem[] | null> {
           
           if (data.success && data.success.itens && data.success.itens.length > 0) {
             console.log(`SLA Blocker: Página ${page} - ${data.success.itens.length} tarefas encontradas para "${keyword}"`);
+            console.log('SLA Blocker: Exemplo de tarefa encontrada:', data.success.itens[0]);
             
             // Adicionar tarefas únicas (evitar duplicatas por CFE)
             data.success.itens.forEach((newTask: TaskItem) => {
               const exists = allTasks.some(existingTask => existingTask.cfe === newTask.cfe);
               if (!exists) {
                 allTasks.push(newTask);
+                console.log(`SLA Blocker: Tarefa ${newTask.cfe} adicionada. Total atual: ${allTasks.length}`);
+              } else {
+                console.log(`SLA Blocker: Tarefa ${newTask.cfe} já existe, ignorando duplicata`);
               }
             });
 
@@ -335,75 +340,173 @@ async function verificaAtrasos(): Promise<TaskItem[] | null> {
 }
 
 function createModal(tasks: TaskItem[]): void {
+  console.log(`SLA Blocker: createModal chamado com ${tasks.length} tarefas`);
+  
   // Se não há tarefas em atraso, não mostrar modal
   if (tasks.length === 0) {
     console.log('SLA Blocker: Nenhuma tarefa em atraso, modal não será exibido');
     return;
   }
 
+  // Verificar se já existe um modal
+  const existingModal = document.getElementById('sla-modal-container');
+  if (existingModal) {
+    console.log('SLA Blocker: Modal já existe, removendo...');
+    existingModal.remove();
+  }
+
   // Criar container para o modal
   const modalContainer = document.createElement('div');
   modalContainer.id = 'sla-modal-container';
+  
+  // Adicionar estilos inline para garantir visibilidade
+  modalContainer.style.cssText = `
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 94 !important;
+    pointer-events: auto !important;
+    display: block !important;
+  `;
+  
   document.body.appendChild(modalContainer);
+  console.log('SLA Blocker: Container do modal adicionado ao DOM');
+  console.log('SLA Blocker: Container criado:', modalContainer);
 
   // Função para fechar o modal
   const closeModal = () => {
+    console.log('SLA Blocker: Fechando modal');
     modalContainer.remove();
   };
 
   // Renderizar componente Preact
-  render(
-    <SLAModal tasks={tasks} onClose={closeModal} />,
-    modalContainer
-  );
+  console.log('SLA Blocker: Renderizando componente Preact...');
+  try {
+    render(
+      <SLAModal tasks={tasks} onClose={closeModal} />,
+      modalContainer
+    );
+    console.log('SLA Blocker: Componente Preact renderizado com sucesso!');
+    
+    // Verificar se o conteúdo foi renderizado
+    setTimeout(() => {
+      console.log('SLA Blocker: Verificando conteúdo renderizado...');
+      console.log('SLA Blocker: innerHTML do container:', modalContainer.innerHTML.substring(0, 200) + '...');
+      console.log('SLA Blocker: Children count:', modalContainer.children.length);
+      
+      if (modalContainer.children.length === 0) {
+        console.error('SLA Blocker: ERRO - Nenhum elemento filho foi renderizado!');
+      } else {
+        console.log('SLA Blocker: ✅ Modal renderizado corretamente!');
+      }
+    }, 100);
+    
+  } catch (error) {
+    console.error('SLA Blocker: Erro ao renderizar Preact:', error);
+    
+    // Fallback - criar modal simples em HTML puro
+    console.log('SLA Blocker: Criando modal fallback...');
+    modalContainer.innerHTML = `
+      <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 94;">
+        <div style="background: white; padding: 20px; border-radius: 8px; max-width: 80%; max-height: 80%; overflow: auto;">
+          <h2>SLA Blocker - Atenção</h2>
+          <p>Você possui ${tasks.length} tarefa(s) com SLA expirado:</p>
+          <ul>
+            ${tasks.map(task => `<li>${task.cfe}: ${task.t}</li>`).join('')}
+          </ul>
+          <button onclick="document.getElementById('sla-modal-container').remove()" style="background: #3b82f6; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">OK</button>
+        </div>
+      </div>
+    `;
+  }
 }
 
 // ===== EXECUÇÃO PRINCIPAL =====
 (async () => {
+  console.log('SLA Blocker: Iniciando execução principal...');
   try {
     // 1. Verificações preliminares (sem requisições HTTP)
+    console.log('SLA Blocker: Verificando critérios de execução...');
+    console.log('SLA Blocker: URL atual:', window.location.pathname);
+    
     if (!shouldExecute()) {
       console.log('SLA Blocker: URL não atende aos critérios (/my e /services)');
+      console.log('SLA Blocker: Pathname atual:', window.location.pathname.toLowerCase());
       return;
     }
+    console.log('SLA Blocker: ✓ Critérios de URL atendidos');
 
+    console.log('SLA Blocker: Buscando chave de licença...');
     const licenseKey = getLicenseKey();
     if (!licenseKey) {
       console.error('SLA Blocker: Chave de licença não encontrada na URL');
+      console.error('SLA Blocker: URL completa:', window.location.href);
       return;
     }
+    console.log('SLA Blocker: ✓ Chave de licença encontrada:', licenseKey);
 
     // 2. Validação de licença
+    console.log('SLA Blocker: Iniciando validação de licença...');
     if (!(await validateLicense(licenseKey))) {
+      console.error('SLA Blocker: Validação de licença falhou');
       return; // Eventos já disparados na função validateLicense
     }
 
-    console.log('SLA Blocker: Licença válida, inicializando...');
+    console.log('SLA Blocker: ✓ Licença válida, inicializando...');
 
     // 3. Aguardar DOM se necessário
+    console.log('SLA Blocker: Verificando estado do DOM...');
     if (document.readyState === 'loading') {
+      console.log('SLA Blocker: Aguardando DOM carregar...');
       await new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve));
     }
+    console.log('SLA Blocker: ✓ DOM pronto');
 
     // 4. Verificar tarefas em atraso
+    console.log('SLA Blocker: Iniciando verificação de tarefas em atraso...');
     const tasks = await verificaAtrasos();
+    
+    console.log('SLA Blocker: Resultado de verificaAtrasos:', tasks);
+    console.log('SLA Blocker: Tipo do resultado:', typeof tasks);
+    console.log('SLA Blocker: É array?', Array.isArray(tasks));
+    
     if (tasks === null) {
-      console.error('SLA Blocker: Erro ao verificar tarefas em atraso');
+      console.error('SLA Blocker: Erro ao verificar tarefas em atraso - resultado é null');
       return;
     }
 
     // 5. Renderizar interface apenas se houver tarefas em atraso
+    console.log(`SLA Blocker: ✓ Verificação concluída - Total de tarefas processadas: ${tasks.length}`);
+    console.log('SLA Blocker: Dados das tarefas:', tasks);
+    
     if (tasks.length > 0) {
+      console.log('SLA Blocker: Iniciando exibição do modal...');
+      console.log('SLA Blocker: Injetando estilos CSS...');
       injectStyles('__CSS_CONTENT__');
+      console.log('SLA Blocker: Chamando createModal...');
       createModal(tasks);
+      console.log('SLA Blocker: ✅ Modal criado e renderizado com sucesso!');
     } else {
-      console.log('SLA Blocker: Nenhuma tarefa em atraso encontrada, interface não será exibida');
+      console.log('SLA Blocker: ⚠️ Nenhuma tarefa em atraso encontrada, interface não será exibida');
     }
 
   } catch (error) {
-    console.error('SLA Blocker: Erro crítico:', error);
+    console.error('SLA Blocker: ❌ Erro crítico:', error);
+    if (error instanceof Error) {
+      console.error('SLA Blocker: Stack trace:', error.stack);
+    }
   }
 })();
 
 // Exportar para debugging (opcional)
 export { validateLicense, shouldExecute, verificaAtrasos };
+
+// Para debugging no navegador
+if (typeof window !== 'undefined') {
+  (window as any).validateLicense = validateLicense;
+  (window as any).shouldExecute = shouldExecute;
+  (window as any).verificaAtrasos = verificaAtrasos;
+  (window as any).createModal = createModal;
+}
