@@ -2,97 +2,129 @@
 
 Módulo JavaScript ES que exibe um modal com tarefas de correção pendentes na plataforma Zeev. **Agora implementado com Preact para melhor performance e reatividade!**
 
-## 📋 **Como Usar**
+---
 
-### **1. Importação Simples**
-Adicione esta linha **no final do `<body>`** da sua página HTML na plataforma Zeev:
+# 📋 **PARTE 1: COMO USAR EM PRODUÇÃO**
 
-```html
-<script type="module" src="https://juevan.github.io/Zeev---SLA-Blocker/main.js?key=SUA_CHAVE_DE_LICENCA"></script>
+## **Passo a Passo Completo para Implementação**
+
+### **Passos 1 & 2: Abrir menu e acessar Configurar**
+
+1. Clique no ícone ☰ (menu) no canto superior esquerdo.  
+2. No grupo **Administração**, selecione **Configurar** (ícone de engrenagem).
+
+![Print 1 – Passos 1 & 2](https://raw.githubusercontent.com/Juevan/ZeevSLABlocker/main/docs/images/passo-1-2-menu-configurar.png)
+
+---
+
+### **Passos 3 & 4: Acessar "Configurações gerais básicas" e ir até Personalização**
+
+3. Você será direcionado(a) para **Configurações gerais básicas** (abas: Básico, E-mails, Consumo).  
+4. Role a página até encontrar a seção **PERSONALIZAÇÃO**.
+
+![Print 2 – Passos 3 & 4](https://raw.githubusercontent.com/Juevan/ZeevSLABlocker/main/docs/images/passo-3-4-configuracoes-personalizacao.png)
+
+---
+
+### **Passos 5 a 7: Inserir código customizado e salvar**
+
+5. Abra o editor **Código customizado**.  
+6. Cole o seu script, por exemplo:
+   ```html
+   <script type="module" src="https://juevan.github.io/ZeevSLABlocker/main.js?key=f9e8d7c6b5a4321098765432109876fe"></script>
+   ```
+7. Clique em **Salvar configurações** (botão roxo, canto inferior esquerdo).
+
+![Print 3 – Passos 5 a 7](https://raw.githubusercontent.com/Juevan/ZeevSLABlocker/main/docs/images/passo-5-7-codigo-customizado-salvar.png)
+
+---
+
+## **✅ Requisitos do Sistema**
+
+- ✅ **URL deve conter**: `/my` **E** `/services`
+- ✅ **Chave válida**: Substitua `SEU_KEY_AQUI` pela sua chave de licença
+- ✅ **Navegador moderno**: Suporte a ES Modules (Chrome 61+, Firefox 60+, Safari 11+)
+- ✅ **Permissões**: Acesso de administrador para configurar personalização
+
+## **🎯 URL do Módulo**
+```
+https://juevan.github.io/ZeevSLABlocker/main.js?key=SUA_CHAVE
 ```
 
-### **2. Requisitos**
-- ✅ **URL deve conter**: `/my` **E** `/services`
-- ✅ **Chave válida**: Substitua `SUA_CHAVE_DE_LICENCA` pela sua chave válida
-- ✅ **Navegador moderno**: Suporte a ES Modules (Chrome 61+, Firefox 60+, Safari 11+)
+---
 
-## 🔧 **Funcionalidades**
+# 🛠️ **PARTE 2: DOCUMENTAÇÃO TÉCNICA**
 
-- 🔐 **Validação de licença automática** via API externa
-- 🎯 **Verificação inteligente de URL** (só ativa em páginas `/my` + `/services`)
-- ⚛️ **Interface reativa com Preact** - componentes otimizados e rápidos
-- 🎨 **Modal responsivo** com Tailwind CSS embutido
-- 📱 **Ocupa 70% da tela** com overlay bloqueante
-- ⚡ **Tudo embutido**: CSS, HTML e componentes dentro do JavaScript
-- 🛡️ **Não interfere** no CSS/JavaScript existente da página
-- 🎯 **Fechamento inteligente**: ESC, clique no X, clique no OK ou clique fora do modal
+## **🔧 Funcionalidades**
 
-## 🔄 **Fluxo de Funcionamento**
+- 🔐 **Validação de licença** via API externa com cache de 24 horas
+- 🎯 **Ativação inteligente** apenas em URLs com `/my` **E** `/services`
+- ⚛️ **Interface reativa** com componentes Preact otimizados
+- 🎨 **Modal responsivo** (70% da tela) com overlay bloqueante
+- ⚡ **Bundle autocontido** - CSS e componentes embutidos no JavaScript
+- 🛡️ **Não interferência** com código existente da página
+- 🎯 **Fechamento inteligente** - ESC, X, OK ou clique fora
+- 🔄 **Monitoramento automático** de tarefas a cada 30 segundos
+- 🚫 **Bloqueio inteligente** para novas solicitações durante tarefas pendentes
 
-1. **Script carregado** → Extrai `key` da URL do módulo
-2. **Valida URL** → Verifica se contém `/my` e `/services`
-3. **Valida licença** → Faz requisição para API de validação
-4. **Licença válida** → Injeta CSS e renderiza componentes Preact
-5. **Licença inválida** → Para execução e dispara evento `licenseInvalid`
+## **🔄 Fluxo de Funcionamento**
 
-## ⚛️ **Arquitetura Preact**
+1. **Carregamento** → Extrai `key` da URL
+2. **Validação** → Verifica URL (`/my` + `/services`) e licença
+3. **Renderização** → Injeta componentes Preact se válido
+4. **Monitoramento** → Busca tarefas de correção em atraso
+5. **Exibição** → Modal com tarefas pendentes (se houver)
+6. **Atualização** → Monitora mudanças continuamente
 
-### **Componentes**
-- **`SLAModal`**: Componente principal do modal com gerenciamento de estado
-- **`TaskTable`**: Tabela reativa que renderiza as tarefas automaticamente
-- **Hooks utilizados**: `useEffect` para gerenciamento de eventos do teclado
+## **⚛️ Arquitetura**
 
-### **Benefícios do Preact**
-- 📦 **Bundle otimizado**: ~23KB total (Preact + Tailwind + toda a lógica)
-- ⚡ **Performance**: Renderização rápida e eficiente com Virtual DOM
-- 🔄 **Reatividade**: Interface atualiza automaticamente quando dados mudam
-- 🧹 **Cleanup automático**: Eventos são removidos automaticamente quando componente desmonta
-- 🎯 **Código limpo**: Arquitetura simplificada e organizada
+### **Componentes Preact**
+- **`SLAModal`** - Componente principal com gerenciamento de estado
+- **`TaskTable`** - Tabela reativa de tarefas
+- **`AlertSystem`** - Sistema de notificações
 
-## 🛠️ **Para Desenvolvedores**
+### **Benefícios**
+- 📦 **Bundle otimizado** ~520KB com ofuscação
+- ⚡ **Performance** com Virtual DOM
+- 🔄 **Reatividade** automática de interface
+- 🧹 **Cleanup** automático de eventos
 
-### **Validação de Licença**
+---
+
+## **🛠️ Desenvolvimento**
+
+### **Build e Deploy**
+```bash
+npm run build    # Build minificado e ofuscado
+npm run clean    # Limpeza de arquivos
+```
+
+### **Estrutura**
+```
+src/
+├── main.tsx     # Componentes Preact principais
+├── alerts.tsx   # Sistema de alertas
+└── styles.css   # Estilos Tailwind
+```
+
+### **Recursos de Segurança**
+- 🔒 **Ofuscação** com `javascript-obfuscator`
+- ⚡ **Minificação** com `terser`
+- 🛡️ **Anti-debug** e proteção contra engenharia reversa
+
+### **Tecnologias**
+- **Runtime**: Preact, Tailwind CSS (embutido)
+- **Dev**: TypeScript, esbuild, Terser, JS Obfuscator
+
+### **Eventos Personalizados**
 ```javascript
-// Evento disparado quando licença é inválida
+// Escutar validação de licença
 window.addEventListener('licenseInvalid', (event) => {
   console.log('Licença inválida:', event.detail);
-  // { origin: "...", key: "...", error?: "..." }
 });
 ```
 
-### **Build Local**
-```bash
-npm install
-npm run build
-```
-
-### **Estrutura do Projeto**
-```
-src/
-├── main.tsx          # Código principal com componentes Preact integrados
-└── styles.css        # Estilos Tailwind
-
-dist/
-└── main.js           # Módulo final compilado com Preact
-```
-
-## 🔧 **Dependências**
-
-### **Runtime**
-- **Preact**: Framework reativo leve (~3KB)
-- **Tailwind CSS**: Styling (embutido no bundle)
-
-### **Desenvolvimento**
-- **TypeScript**: Tipagem estática
-- **esbuild**: Bundler rápido com suporte a JSX
-- **Tailwind CSS**: Framework CSS utilitário
-
-## 🌐 **URL do Módulo**
-```
-https://juevan.github.io/Zeev---SLA-Blocker/main.js?key=SUA_CHAVE
-```
-
-## 📝 **Exemplo Completo**
+## **📝 Exemplo de Integração**
 
 ```html
 <!DOCTYPE html>
@@ -101,19 +133,32 @@ https://juevan.github.io/Zeev---SLA-Blocker/main.js?key=SUA_CHAVE
     <title>Página Zeev</title>
 </head>
 <body>
-    <!-- Conteúdo da página -->
     <h1>Minha página na plataforma Zeev</h1>
     
-    <!-- Importar módulo no final do body -->
-    <script type="module" src="https://juevan.github.io/Zeev---SLA-Blocker/main.js?key=abc123def456"></script>
+    <!-- Importar módulo -->
+    <script type="module">
+      try {
+        await import('https://juevan.github.io/ZeevSLABlocker/main.js?key=abc123def456');
+      } catch (error) {
+        console.warn('SLA Blocker não pôde ser carregado:', error);
+      }
+    </script>
+    
+    <!-- Listener de eventos -->
+    <script>
+      window.addEventListener('licenseInvalid', (event) => {
+        console.log('Licença inválida detectada:', event.detail);
+      });
+    </script>
 </body>
 </html>
 ```
 
-## ⚠️ **Importante**
-- Modal só aparece em URLs que contenham **ambos**: `/my` **E** `/services`
-- Licença é validada a cada carregamento
-- Se a licença for inválida, o módulo não executa
+## **⚠️ Observações Importantes**
+- Modal ativa apenas em URLs com `/my` **E** `/services`
+- Licença validada a cada carregamento (cache 24h)
+- Busca tarefas com palavras-chave: 'corrigir', 'correção', 'correcao', 'ajuste', 'ajustar'
+- Prioriza tarefas em atraso (status "Late")
 
-## 📄 **Licença**
-MIT © 2025 Antonio Juevan
+## **📄 Licença**
+[MIT](LICENSE) © 2025 Antonio Juevan
