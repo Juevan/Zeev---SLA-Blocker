@@ -1,7 +1,7 @@
 {
   "name": "zeev-sla-blocker",
-  "version": "1.0.0",
-  "description": "Módulo ES para exibir modal de tarefas de correção com SLA",
+  "version": "2.0.0",
+  "description": "Módulo ES para exibir modal de tarefas de correção com SLA - Agora com Preact!",
   "main": "dist/main.js",
   "type": "module",
   "scripts": {
@@ -9,14 +9,18 @@
     "build:js": "node build.mjs",
     "build": "npm run build:css && npm run build:js",
     "dev:build": "npm run build && echo 'Build concluído! Arquivos em dist/'",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist",
+    "test": "echo 'Abra test.html no navegador para testar'"
   },
   "keywords": [
     "typescript",
     "tailwind",
     "modal",
     "sla",
-    "zeev"
+    "zeev",
+    "preact",
+    "jsx",
+    "reactive"
   ],
   "author": "Antonio Juevan",
   "license": "MIT",
@@ -26,5 +30,10 @@
     "rimraf": "^5.0.5",
     "tailwindcss": "^3.3.6",
     "typescript": "^5.3.2"
+  },
+  "dependencies": {
+    "@preact/compat": "^18.3.1",
+    "htm": "^3.1.1",
+    "preact": "^10.26.9"
   }
 }

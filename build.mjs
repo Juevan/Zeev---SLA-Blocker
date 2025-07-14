@@ -21,12 +21,8 @@ async function buildProject() {
     const cssPath = join(__dirname, 'dist', 'styles.css');
     const cssContent = readFileSync(cssPath, 'utf-8');
     
-    // Ler o HTML do modal
-    const htmlPath = join(__dirname, 'src', 'modal.html');
-    const htmlContent = readFileSync(htmlPath, 'utf-8');
-    
-    // Ler o código TypeScript e substituir os placeholders
-    const tsPath = join(__dirname, 'src', 'main.ts');
+    // Ler o código TypeScript
+    const tsPath = join(__dirname, 'src', 'main.tsx');
     let tsContent = readFileSync(tsPath, 'utf-8');
     
     // Função para escapar string para JavaScript
@@ -42,10 +38,9 @@ async function buildProject() {
     
     // Substituir placeholders
     tsContent = tsContent.replace('__CSS_CONTENT__', escapeForJS(cssContent));
-    tsContent = tsContent.replace('__HTML_CONTENT__', escapeForJS(htmlContent));
     
     // Criar arquivo temporário com conteúdo processado
-    const tempTsPath = join(__dirname, 'temp-main.ts');
+    const tempTsPath = join(__dirname, 'temp-main.tsx');
     writeFileSync(tempTsPath, tsContent);
     
     // Build com esbuild
@@ -59,6 +54,12 @@ async function buildProject() {
       platform: 'browser',
       treeShaking: true,
       sourcemap: false,
+      jsx: 'automatic',
+      jsxImportSource: 'preact',
+      alias: {
+        'react': 'preact/compat',
+        'react-dom': 'preact/compat'
+      }
     });
     
     // Remover arquivo temporário

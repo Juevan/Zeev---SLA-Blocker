@@ -1,4 +1,4 @@
-name: Deploy Tailwind CSS + TS to GitHub Pages
+name: Deploy Preact + Tailwind CSS to GitHub Pages
 
 on:
   push:
@@ -100,9 +100,9 @@ jobs:
               </style>
           </head>
           <body>
-              <h1>🚀 Zeev SLA Blocker</h1>
+              <h1>🚀 Zeev SLA Blocker (Preact)</h1>
               
-              <p>Este é um módulo JavaScript ES que exibe um modal com tarefas de correção pendentes.</p>
+              <p>Este é um módulo JavaScript ES com componentes Preact que exibe um modal com tarefas de correção pendentes.</p>
               
               <div class="highlight success">
                   <h3>✅ Módulo Disponível</h3>
@@ -129,12 +129,14 @@ jobs:
               
               <h2>🔧 Funcionalidades</h2>
               <ul>
+                  <li>⚛️ Interface reativa com Preact (~23KB total)</li>
                   <li>✅ Verificação automática de URL</li>
                   <li>🔐 Validação de licença via API</li>
                   <li>🎨 Modal responsivo com Tailwind CSS</li>
                   <li>📱 Ocupa 70% da tela</li>
                   <li>🛡️ Overlay bloqueante</li>
-                  <li>⚡ CSS e HTML embutidos no JavaScript</li>
+                  <li>⚡ CSS embutido no JavaScript</li>
+                  <li>🧹 Cleanup automático de eventos</li>
               </ul>
               
               <h2>📄 Documentação</h2>

@@ -11,7 +11,9 @@
     "rootDir": "./src",
     "declaration": true,
     "sourceMap": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"]
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact"
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

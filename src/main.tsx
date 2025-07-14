@@ -1,3 +1,7 @@
+import { render } from 'preact';
+import { JSX } from 'preact';
+import { useEffect } from 'preact/hooks';
+
 // ===== TIPOS =====
 interface LicenseValidationResponse {
   valid: boolean;
@@ -23,6 +27,134 @@ interface TaskResponse {
   success: {
     itens: TaskItem[];
   };
+}
+
+// ===== COMPONENTES =====
+interface TaskTableProps {
+  tasks: TaskItem[];
+}
+
+function TaskTable({ tasks }: TaskTableProps): JSX.Element {
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full border-collapse border border-gray-300">
+        <thead>
+          <tr className="bg-gray-100">
+            <th className="border border-gray-300 px-4 py-2 text-left font-semibold">N° Tarefa</th>
+            <th className="border border-gray-300 px-4 py-2 text-left font-semibold">Vencimento</th>
+            <th className="border border-gray-300 px-4 py-2 text-left font-semibold">Nome da Tarefa</th>
+          </tr>
+        </thead>
+        <tbody>
+          {tasks.map((task, index) => (
+            <tr key={task.cfe} className={index % 2 === 1 ? "bg-gray-50" : ""}>
+              <td className="border border-gray-300 px-4 py-2">
+                <a 
+                  href={task.lk} 
+                  data-key={task.cfetp} 
+                  tabIndex={0} 
+                  role="button" 
+                  className="text-blue-600 hover:text-blue-800 underline" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                >
+                  {task.cfe}
+                </a>
+              </td>
+              <td className="border border-gray-300 px-4 py-2 text-red-600 font-semibold">
+                {task.el}
+              </td>
+              <td className="border border-gray-300 px-4 py-2">
+                {task.t}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+interface SLAModalProps {
+  tasks: TaskItem[];
+  onClose: () => void;
+}
+
+function SLAModal({ tasks, onClose }: SLAModalProps): JSX.Element {
+  const totalSolicitacoes = tasks.length;
+
+  const handleOverlayClick = (e: Event) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [onClose]);
+
+  return (
+    <div 
+      id="sla-modal-overlay" 
+      className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-[94]"
+      onClick={handleOverlayClick}
+    >
+      <div className="bg-white rounded-lg shadow-xl w-[70%] max-w-4xl max-h-[80vh] overflow-auto">
+        {/* Header */}
+        <div className="flex justify-between items-center p-6 border-b border-gray-200">
+          <h2 className="text-2xl font-bold text-gray-800">Atenção</h2>
+          <button 
+            id="sla-modal-close-x" 
+            className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
+            onClick={onClose}
+          >
+            ×
+          </button>
+        </div>
+        
+        {/* Content */}
+        <div className="p-6">
+          <p className="text-lg text-gray-700 mb-6">
+            Você possui um total de <strong className="text-red-600">{totalSolicitacoes}</strong>{' '}
+            {totalSolicitacoes === 1 ? 'solicitação' : 'solicitações'} com o SLA expirado:
+          </p>
+          
+          <TaskTable tasks={tasks} />
+        </div>
+        
+        {/* Footer */}
+        <div className="flex justify-between items-center p-6 border-t border-gray-200">
+          <p className="text-sm text-gray-600">
+            © 
+            <a 
+              href="https://github.com/USERNAME/REPO/blob/main/LICENSE" 
+              target="_blank" 
+              className="text-blue-600 hover:text-blue-800 underline"
+            >
+              Licença do Projeto
+            </a>
+          </p>
+          <button 
+            id="sla-modal-close-ok" 
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
+            onClick={onClose}
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // ===== UTILITÁRIOS =====
@@ -170,7 +302,7 @@ async function verificaAtrasos(): Promise<TaskItem[] | null> {
             console.log(`SLA Blocker: Página ${page} - ${data.success.itens.length} tarefas encontradas para "${keyword}"`);
             
             // Adicionar tarefas únicas (evitar duplicatas por CFE)
-            data.success.itens.forEach(newTask => {
+            data.success.itens.forEach((newTask: TaskItem) => {
               const exists = allTasks.some(existingTask => existingTask.cfe === newTask.cfe);
               if (!exists) {
                 allTasks.push(newTask);
@@ -202,69 +334,28 @@ async function verificaAtrasos(): Promise<TaskItem[] | null> {
   }
 }
 
-function createModal(htmlContent: string, tasks: TaskItem[]): void {
+function createModal(tasks: TaskItem[]): void {
   // Se não há tarefas em atraso, não mostrar modal
   if (tasks.length === 0) {
     console.log('SLA Blocker: Nenhuma tarefa em atraso, modal não será exibido');
     return;
   }
 
-  const totalSolicitacoes = tasks.length;
+  // Criar container para o modal
+  const modalContainer = document.createElement('div');
+  modalContainer.id = 'sla-modal-container';
+  document.body.appendChild(modalContainer);
 
-  // Gerar linhas da tabela com dados reais
-  const tableRows = tasks.map(item => `
-    <tr>
-      <td class="border border-gray-300 px-4 py-2">
-        <a href="${item.lk}" data-key="${item.cfetp}" tabindex="0" role="button" class="text-blue-600 hover:text-blue-800 underline" target="_blank" rel="noopener noreferrer">
-          ${item.cfe}
-        </a>
-      </td>
-      <td class="border border-gray-300 px-4 py-2 text-red-600 font-semibold">${item.el}</td>
-      <td class="border border-gray-300 px-4 py-2">${item.t}</td>
-    </tr>
-  `).join('');
-
-  // Substituir conteúdo da tabela no HTML do modal
-  const updatedHtmlContent = htmlContent
-    .replace(/<tbody>[\s\S]*?<\/tbody>/, `<tbody>${tableRows}</tbody>`)
-    .replace(/Você possui as seguintes tarefas de correção:/,
-      `Você possui um total de <strong class="text-red-600">${totalSolicitacoes}</strong> ${totalSolicitacoes === 1 ? 'solicitação' : 'solicitações'} com o SLA expirado:`);
-
-  const tempDiv = document.createElement('div');
-  tempDiv.innerHTML = updatedHtmlContent;
-
-  const modalElement = tempDiv.firstElementChild as HTMLElement;
-  if (!modalElement) {
-    console.error('Erro ao criar modal: HTML inválido');
-    return;
-  }
-
-  document.body.appendChild(modalElement);
-
-  // Configurar fechamento do modal
-  const closeModal = () => modalElement.remove();
-
-  // Selectors dos elementos de fechamento
-  const selectors = ['#sla-modal-close-x', '#sla-modal-close-ok'];
-  selectors.forEach(selector => {
-    const element = modalElement.querySelector(selector) as HTMLButtonElement;
-    element?.addEventListener('click', closeModal);
-  });
-
-  // Fechar ao clicar no overlay
-  const overlay = modalElement.querySelector('#sla-modal-overlay') as HTMLElement;
-  overlay?.addEventListener('click', (e) => {
-    if (e.target === overlay) closeModal();
-  });
-
-  // Fechar com ESC
-  const handleEscape = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      closeModal();
-      document.removeEventListener('keydown', handleEscape);
-    }
+  // Função para fechar o modal
+  const closeModal = () => {
+    modalContainer.remove();
   };
-  document.addEventListener('keydown', handleEscape);
+
+  // Renderizar componente Preact
+  render(
+    <SLAModal tasks={tasks} onClose={closeModal} />,
+    modalContainer
+  );
 }
 
 // ===== EXECUÇÃO PRINCIPAL =====
@@ -304,7 +395,7 @@ function createModal(htmlContent: string, tasks: TaskItem[]): void {
     // 5. Renderizar interface apenas se houver tarefas em atraso
     if (tasks.length > 0) {
       injectStyles('__CSS_CONTENT__');
-      createModal('__HTML_CONTENT__', tasks);
+      createModal(tasks);
     } else {
       console.log('SLA Blocker: Nenhuma tarefa em atraso encontrada, interface não será exibida');
     }

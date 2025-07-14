@@ -1,6 +1,6 @@
 # 🚀 Zeev SLA Blocker
 
-Módulo JavaScript ES que exibe um modal com tarefas de correção pendentes na plataforma Zeev.
+Módulo JavaScript ES que exibe um modal com tarefas de correção pendentes na plataforma Zeev. **Agora implementado com Preact para melhor performance e reatividade!**
 
 ## 📋 **Como Usar**
 
@@ -20,18 +20,34 @@ Adicione esta linha **no final do `<body>`** da sua página HTML na plataforma Z
 
 - 🔐 **Validação de licença automática** via API externa
 - 🎯 **Verificação inteligente de URL** (só ativa em páginas `/my` + `/services`)
+- ⚛️ **Interface reativa com Preact** - componentes otimizados e rápidos
 - 🎨 **Modal responsivo** com Tailwind CSS embutido
 - 📱 **Ocupa 70% da tela** com overlay bloqueante
-- ⚡ **Tudo embutido**: CSS e HTML dentro do JavaScript
+- ⚡ **Tudo embutido**: CSS, HTML e componentes dentro do JavaScript
 - 🛡️ **Não interfere** no CSS/JavaScript existente da página
+- 🎯 **Fechamento inteligente**: ESC, clique no X, clique no OK ou clique fora do modal
 
 ## 🔄 **Fluxo de Funcionamento**
 
 1. **Script carregado** → Extrai `key` da URL do módulo
 2. **Valida URL** → Verifica se contém `/my` e `/services`
 3. **Valida licença** → Faz requisição para API de validação
-4. **Licença válida** → Injeta CSS e exibe modal
+4. **Licença válida** → Injeta CSS e renderiza componentes Preact
 5. **Licença inválida** → Para execução e dispara evento `licenseInvalid`
+
+## ⚛️ **Arquitetura Preact**
+
+### **Componentes**
+- **`SLAModal`**: Componente principal do modal com gerenciamento de estado
+- **`TaskTable`**: Tabela reativa que renderiza as tarefas automaticamente
+- **Hooks utilizados**: `useEffect` para gerenciamento de eventos do teclado
+
+### **Benefícios do Preact**
+- 📦 **Bundle otimizado**: ~23KB total (Preact + Tailwind + toda a lógica)
+- ⚡ **Performance**: Renderização rápida e eficiente com Virtual DOM
+- 🔄 **Reatividade**: Interface atualiza automaticamente quando dados mudam
+- 🧹 **Cleanup automático**: Eventos são removidos automaticamente quando componente desmonta
+- 🎯 **Código limpo**: Arquitetura simplificada e organizada
 
 ## 🛠️ **Para Desenvolvedores**
 
@@ -53,13 +69,23 @@ npm run build
 ### **Estrutura do Projeto**
 ```
 src/
-├── main.ts        # Código principal do módulo
-├── modal.html     # Template do modal
-└── styles.css     # Estilos Tailwind
+├── main.tsx          # Código principal com componentes Preact integrados
+└── styles.css        # Estilos Tailwind
 
 dist/
-└── main.js        # Módulo final compilado
+└── main.js           # Módulo final compilado com Preact
 ```
+
+## 🔧 **Dependências**
+
+### **Runtime**
+- **Preact**: Framework reativo leve (~3KB)
+- **Tailwind CSS**: Styling (embutido no bundle)
+
+### **Desenvolvimento**
+- **TypeScript**: Tipagem estática
+- **esbuild**: Bundler rápido com suporte a JSX
+- **Tailwind CSS**: Framework CSS utilitário
 
 ## 🌐 **URL do Módulo**
 ```
