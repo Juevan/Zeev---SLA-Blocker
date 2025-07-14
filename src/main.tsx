@@ -190,7 +190,7 @@ function SLAModal({ tasks, onClose, onRefresh }: { tasks: TaskItem[]; onClose: (
           <p className="text-sm text-gray-600">
             © 
             <a 
-              href="https://github.com/USERNAME/REPO/blob/main/LICENSE" 
+              href="https://juevan.github.io/ZeevSLABlocker/main/LICENSE" 
               target="_blank" 
               className="text-blue-600 hover:text-blue-800 underline"
             >
