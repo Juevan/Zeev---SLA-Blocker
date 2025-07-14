@@ -29,7 +29,6 @@ interface TaskResponse {
   };
 }
 
-// ===== COMPONENTES =====
 function TaskTable({ tasks }: { tasks: TaskItem[] }): JSX.Element {
   return (
     <div className="overflow-x-auto">

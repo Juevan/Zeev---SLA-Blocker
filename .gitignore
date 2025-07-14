@@ -1,34 +1,28 @@
-# Dependencies
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Build outputs (GitHub Actions fará o build automaticamente)
 dist/
 build/
 out/
 
-# Development files
 *.tsbuildinfo
 temp-main.ts
 
-# Environment variables
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-# IDE and editors
 .vscode/
 .idea/
 *.swp
 *.swo
 *.tmp
 
-# Operating System
 .DS_Store
 .DS_Store?
 ._*
@@ -38,48 +32,76 @@ ehthumbs.db
 Thumbs.db
 desktop.ini
 
-# Logs
 logs/
 *.log
 
-# Runtime data
 pids/
 *.pid
 *.seed
 *.pid.lock
 
-# Coverage directory used by tools like istanbul
 coverage/
 *.lcov
 
-# ESLint cache
 .eslintcache
 
-# Optional npm cache directory
 .npm
 
-# Optional REPL history
 .node_repl_history
 
-# Output of 'npm pack'
 *.tgz
 
-# Yarn Integrity file
 .yarn-integrity
 
-# Microbundle cache
 .rpt2_cache/
 .rts2_cache_cjs/
 .rts2_cache_es/
 .rts2_cache_umd/
 
-# Test files (manter apenas arquivos de produção)
 test.html
 test/
 tests/
 *.test.*
 *.spec.*
 
-# Temporary files
 tmp/
 temp/
+temp-*/
+*.tmp
+*.temp
+temp.*
+temporary.*
+~*
+.#*
+
+*.cache
+.cache/
+cache/
+
+*.bak
+*.backup
+*~
+*.orig
+*.swp
+*.swo
+
+.fseventsd/
+.Trash/
+.TemporaryItems/
+.DocumentRevisions-V100/
+.fseventsd/
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+~$*
+Thumbs.db:encryptable
+ehthumbs_vista.db
+
+*.lock
+package-lock.json.*
+yarn.lock.*
+
+.build/
+.output/
+.dist/
+temp-src/

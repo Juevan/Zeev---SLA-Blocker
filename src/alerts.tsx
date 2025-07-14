@@ -2,7 +2,6 @@ import { render } from 'preact';
 import { JSX } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 
-// ===== TIPOS =====
 export type AlertType = 'success' | 'error' | 'warning' | 'info';
 
 export interface AlertOptions {
@@ -25,7 +24,6 @@ interface AlertItemProps extends AlertOptions {
   onClose: (id: string) => void;
 }
 
-// ===== CONFIGURAÇÕES VISUAIS =====
 const AlertIcons = {
   success: '✅',
   error: '❌',
@@ -60,7 +58,6 @@ const AlertStyles = {
   }
 };
 
-// ===== COMPONENTES =====
 function AlertItem({ id, type, title, message, duration = 5000, showCloseButton = true, actions = [], onClose }: AlertItemProps): JSX.Element {
   const [isVisible, setIsVisible] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
@@ -181,7 +178,6 @@ function AlertContainer({ alerts, onClose }: { alerts: AlertItemProps[], onClose
   );
 }
 
-// ===== GERENCIADOR DE ALERTAS =====
 export class AlertManager {
   private alerts: AlertItemProps[] = [];
   private container: HTMLElement | null = null;
@@ -219,11 +215,6 @@ export class AlertManager {
     return `alert-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 
-  /**
-   * Exibe um alerta
-   * @param options Configurações do alerta
-   * @returns ID do alerta criado
-   */
   show(options: AlertOptions): string {
     const id = this.generateId();
     const alert: AlertItemProps = {
@@ -239,10 +230,6 @@ export class AlertManager {
     return id;
   }
 
-  /**
-   * Remove um alerta específico
-   * @param id ID do alerta a ser removido
-   */
   removeAlert(id: string): void {
     this.alerts = this.alerts.filter(alert => alert.id !== id);
     this.render();
@@ -257,9 +244,6 @@ export class AlertManager {
     }
   }
 
-  /**
-   * Remove todos os alertas
-   */
   clear(): void {
     this.alerts = [];
     this.render();
@@ -274,11 +258,6 @@ export class AlertManager {
     }
   }
 
-  // ===== MÉTODOS DE CONVENIÊNCIA =====
-
-  /**
-   * Exibe um alerta de sucesso
-   */
   success(title: string, message: string, options?: Partial<AlertOptions>): string {
     return this.show({
       type: 'success',
@@ -289,22 +268,16 @@ export class AlertManager {
     });
   }
 
-  /**
-   * Exibe um alerta de erro (não se fecha automaticamente)
-   */
   error(title: string, message: string, options?: Partial<AlertOptions>): string {
     return this.show({
       type: 'error',
       title,
       message,
-      duration: 0, // Não fecha automaticamente
+      duration: 0,
       ...options
     });
   }
 
-  /**
-   * Exibe um alerta de aviso
-   */
   warning(title: string, message: string, options?: Partial<AlertOptions>): string {
     return this.show({
       type: 'warning',
@@ -315,9 +288,6 @@ export class AlertManager {
     });
   }
 
-  /**
-   * Exibe um alerta informativo
-   */
   info(title: string, message: string, options?: Partial<AlertOptions>): string {
     return this.show({
       type: 'info',
@@ -328,9 +298,6 @@ export class AlertManager {
     });
   }
 
-  /**
-   * Exibe um alerta de confirmação com ações
-   */
   confirm(
     title: string, 
     message: string, 
@@ -358,17 +325,15 @@ export class AlertManager {
       type: 'warning',
       title,
       message,
-      duration: 0, // Não fecha automaticamente
+      duration: 0,
       actions,
       ...options
     });
   }
 }
 
-// ===== INSTÂNCIA GLOBAL E FUNÇÕES DE CONVENIÊNCIA =====
 export const alertManager = AlertManager.getInstance();
 
-// Funções de conveniência para uso direto
 export const showAlert = (options: AlertOptions) => alertManager.show(options);
 export const showSuccess = (title: string, message: string, options?: Partial<AlertOptions>) => 
   alertManager.success(title, message, options);
@@ -386,7 +351,6 @@ export const showConfirm = (
   options?: Partial<AlertOptions>
 ) => alertManager.confirm(title, message, onConfirm, onCancel, options);
 
-// Para compatibilidade com projetos que não usam ES modules
 if (typeof window !== 'undefined') {
   (window as any).AlertManager = AlertManager;
   (window as any).alertManager = alertManager;
