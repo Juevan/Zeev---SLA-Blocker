@@ -114,7 +114,7 @@ async function buildProject() {
       deadCodeInjection: true,
       deadCodeInjectionThreshold: 0.2,
       debugProtection: false,
-      debugProtectionInterval: false,
+      debugProtectionInterval: 0,
       disableConsoleOutput: true,
       identifierNamesGenerator: 'hexadecimal',
       log: false,
