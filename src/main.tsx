@@ -307,7 +307,7 @@ async function verificaAtrasos(): Promise<TaskItem[]> {
     throw new Error("Token de verificação não encontrado");
   }
 
-  const keywords = ['corrigir', 'correção', 'correcao', 'ajuste', 'ajustar'];
+  const keywords = ['corrigir', 'correcao', 'ajuste', 'ajustar'];
   const allTasks: TaskItem[] = [];
   const taskSet = new Set<string>();
 
@@ -334,7 +334,14 @@ async function verificaAtrasos(): Promise<TaskItem[]> {
           const data: TaskResponse = await response.json();
           
           if (data.success?.itens?.length > 0) {
-            tasks.push(...data.success.itens);
+            const filteredTasks = data.success.itens.filter(task => {
+              const taskName = task.t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+              return keywords.some(kw => 
+                taskName.includes(kw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''))
+              );
+            });
+            
+            tasks.push(...filteredTasks);
             page++;
           } else {
             break;
