@@ -75,7 +75,7 @@ async function buildProject() {
     const minifyResult = await minify(bundledContent, {
       compress: {
         drop_console: true,
-        drop_debugger: true,
+        drop_debugger: false,
         dead_code: true,
         unused: true,
         reduce_vars: true,
@@ -113,8 +113,8 @@ async function buildProject() {
       controlFlowFlatteningThreshold: 0.5,
       deadCodeInjection: true,
       deadCodeInjectionThreshold: 0.2,
-      debugProtection: true,
-      debugProtectionInterval: 2000,
+      debugProtection: false,
+      debugProtectionInterval: false,
       disableConsoleOutput: true,
       identifierNamesGenerator: 'hexadecimal',
       log: false,
