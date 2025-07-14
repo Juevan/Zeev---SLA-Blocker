@@ -1,6 +1,6 @@
 import { render } from 'preact';
 import { JSX } from 'preact';
-import { useEffect } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 
 // ===== TIPOS =====
 interface LicenseValidationResponse {
@@ -78,56 +78,118 @@ function TaskTable({ tasks }: TaskTableProps): JSX.Element {
 interface SLAModalProps {
   tasks: TaskItem[];
   onClose: () => void;
+  onRefresh: () => Promise<void>;
 }
 
-function SLAModal({ tasks, onClose }: SLAModalProps): JSX.Element {
-  const totalSolicitacoes = tasks.length;
+function SLAModal({ tasks, onClose, onRefresh }: SLAModalProps): JSX.Element {
+  const [currentTasks, setCurrentTasks] = useState<TaskItem[]>(tasks);
+  const [isLoading, setIsLoading] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState(new Date());
 
-  const handleOverlayClick = (e: MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
+  // Atualização automática a cada 30 segundos
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      console.log('SLA Blocker: Atualizando tarefas automaticamente...');
+      await handleRefresh();
+    }, 30000); // 30 segundos
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Atualizar tarefas quando props.tasks mudar
+  useEffect(() => {
+    setCurrentTasks(tasks);
+    setLastUpdate(new Date());
+  }, [tasks]);
+
+  const handleRefresh = async () => {
+    setIsLoading(true);
+    try {
+      await onRefresh();
+      setLastUpdate(new Date());
+      console.log('SLA Blocker: Tarefas atualizadas com sucesso');
+    } catch (error) {
+      console.error('SLA Blocker: Erro ao atualizar tarefas:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
+  const handleClose = () => {
+    if (currentTasks.length === 0) {
+      onClose();
+    } else {
+      alert('Você não pode fechar este modal enquanto houver tarefas de correção pendentes. Complete as tarefas ou use o botão de atualizar para verificar o status.');
+    }
+  };
 
-    document.addEventListener('keydown', handleKeyDown);
-    
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [onClose]);
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  };
 
   return (
     <div 
       id="sla-modal-overlay" 
       className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center"
       style={{ zIndex: 94 }}
-      onClick={handleOverlayClick}
     >
       <div className="bg-white rounded-lg shadow-xl w-[70%] max-w-4xl max-h-[80vh] overflow-auto">
         {/* Header */}
         <div className="flex justify-between items-center p-6 border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-800">Atenção</h2>
+          <h2 className="text-2xl font-bold text-gray-800">Atenção - Tarefas de Correção</h2>
           <button 
             id="sla-modal-close-x" 
-            className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
-            onClick={onClose}
+            className={`text-2xl font-bold ${currentTasks.length === 0 ? 'text-gray-400 hover:text-gray-600' : 'text-gray-300 cursor-not-allowed'}`}
+            onClick={handleClose}
+            title={currentTasks.length > 0 ? 'Não é possível fechar enquanto há tarefas pendentes' : 'Fechar modal'}
           >
             ×
           </button>
         </div>
         
+        {/* Status Bar */}
+        <div className="flex justify-between items-center px-6 py-3 bg-gray-50 border-b border-gray-200">
+          <div className="flex items-center space-x-4">
+            <span className="text-sm text-gray-600">
+              Última atualização: {formatTime(lastUpdate)}
+            </span>
+            <span className={`text-sm font-semibold ${currentTasks.length > 0 ? 'text-red-600' : 'text-green-600'}`}>
+              {currentTasks.length > 0 ? `${currentTasks.length} tarefa(s) pendente(s)` : 'Nenhuma tarefa pendente'}
+            </span>
+          </div>
+          <button 
+            onClick={handleRefresh}
+            disabled={isLoading}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-semibold transition-colors ${
+              isLoading 
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+            }`}
+            title="Atualizar lista de tarefas"
+          >
+            <span className={`${isLoading ? 'animate-spin' : ''}`}>
+              {isLoading ? '🔄' : '🔄'}
+            </span>
+            <span>{isLoading ? 'Atualizando...' : 'Atualizar'}</span>
+          </button>
+        </div>
+        
         {/* Content */}
         <div className="p-6">
-          <p className="text-lg text-gray-700 mb-6">Você possui as seguintes tarefas de correção:</p>
-          
-          <TaskTable tasks={tasks} />
+          {currentTasks.length > 0 ? (
+            <>
+              <p className="text-lg text-gray-700 mb-6">
+                Você possui as seguintes tarefas de correção pendentes:
+              </p>
+              <TaskTable tasks={currentTasks} />
+            </>
+          ) : (
+            <div className="text-center py-8">
+              <div className="text-6xl mb-4">✅</div>
+              <h3 className="text-xl font-bold text-green-600 mb-2">Parabéns!</h3>
+              <p className="text-gray-600">Não há tarefas de correção pendentes no momento.</p>
+            </div>
+          )}
         </div>
         
         {/* Footer */}
@@ -144,10 +206,15 @@ function SLAModal({ tasks, onClose }: SLAModalProps): JSX.Element {
           </p>
           <button 
             id="sla-modal-close-ok" 
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
-            onClick={onClose}
+            className={`px-6 py-2 rounded-lg font-semibold transition-colors ${
+              currentTasks.length === 0 
+                ? 'bg-green-600 hover:bg-green-700 text-white' 
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
+            onClick={handleClose}
+            title={currentTasks.length > 0 ? 'Complete as tarefas antes de fechar' : 'Fechar modal'}
           >
-            OK
+            {currentTasks.length === 0 ? 'OK' : `Pendente (${currentTasks.length})`}
           </button>
         </div>
       </div>
@@ -370,7 +437,9 @@ function createModal(tasks: TaskItem[]): void {
   
   document.body.appendChild(modalContainer);
   console.log('SLA Blocker: Container do modal adicionado ao DOM');
-  console.log('SLA Blocker: Container criado:', modalContainer);
+
+  // Estado das tarefas
+  let currentTasks = [...tasks];
 
   // Função para fechar o modal
   const closeModal = () => {
@@ -378,11 +447,26 @@ function createModal(tasks: TaskItem[]): void {
     modalContainer.remove();
   };
 
+  // Função para atualizar tarefas
+  const refreshTasks = async () => {
+    console.log('SLA Blocker: Atualizando tarefas...');
+    const newTasks = await verificaAtrasos();
+    if (newTasks !== null) {
+      currentTasks = newTasks;
+      // Re-renderizar o componente com as novas tarefas
+      render(
+        <SLAModal tasks={currentTasks} onClose={closeModal} onRefresh={refreshTasks} />,
+        modalContainer
+      );
+      console.log(`SLA Blocker: Tarefas atualizadas - ${currentTasks.length} tarefas encontradas`);
+    }
+  };
+
   // Renderizar componente Preact
   console.log('SLA Blocker: Renderizando componente Preact...');
   try {
     render(
-      <SLAModal tasks={tasks} onClose={closeModal} />,
+      <SLAModal tasks={currentTasks} onClose={closeModal} onRefresh={refreshTasks} />,
       modalContainer
     );
     console.log('SLA Blocker: Componente Preact renderizado com sucesso!');
