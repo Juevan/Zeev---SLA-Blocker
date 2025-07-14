@@ -438,7 +438,6 @@ function createModal(tasks: TaskItem[]): void {
       return;
     }
 
-    // Executar validação de licença e verificação de tarefas em paralelo
     const [isLicenseValid, tasks] = await Promise.all([
       validateLicense(licenseKey),
       verificaAtrasos()
