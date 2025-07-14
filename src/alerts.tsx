@@ -139,7 +139,7 @@ function AlertItem({ id, type, title, message, duration = 5000, showCloseButton 
         </div>
         
         {duration > 0 && (
-          <div className="mt-3 h-0.3 bg-black bg-opacity-10 rounded-full overflow-hidden">
+          <div className="mt-3 h-0.5 bg-black bg-opacity-10 rounded-full overflow-hidden">
             <div 
               className="h-full bg-current opacity-50 rounded-full animate-pulse"
               style={{

@@ -121,8 +121,8 @@ function SLAModal({ tasks, onClose, onRefresh }: SLAModalProps): JSX.Element {
       onClose();
     } else {
       showError(
-        'Modal Bloqueado',
-        `Você não pode fechar este modal enquanto houver ${currentTasks.length} tarefa(s) de correção pendente(s). Complete as tarefas ou use o botão de atualizar para verificar o status.`,
+        'Bloqueio de novas solicitações',
+        `Você não pode realizar novas solicitações enquanto houver ${currentTasks.length} tarefa(s) de correção pendente(s). Complete as tarefas ou use o botão de atualizar para verificar o status.`,
         {
           duration: 8000,
           actions: [
