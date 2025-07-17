@@ -130,7 +130,7 @@ function SLAModal({ tasks, onClose, onRefresh }: { tasks: TaskItem[]; onClose: (
       className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center"
       style={{ zIndex: 94 }}
     >
-      <div className="bg-white rounded-lg shadow-xl w-[95vw] max-w-[95vw] max-h-[95vh] sm:w-[70%] sm:max-w-4xl sm:max-h-[80vh] sm:overflow-auto overflow-auto">
+      <div className="bg-white rounded-lg shadow-xl w-[95vw] max-w-[95vw]  sm:w-[70%] sm:max-w-4xl sm:overflow-auto overflow-auto">
         <div className="flex justify-between items-center p-6 border-b border-gray-200">
           <h2 className="text-2xl font-bold text-gray-800">Atenção - Tarefas de Correção</h2>
           <button 
