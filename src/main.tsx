@@ -130,7 +130,7 @@ function SLAModal({ tasks, onClose, onRefresh }: { tasks: TaskItem[]; onClose: (
       className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center"
       style={{ zIndex: 94 }}
     >
-      <div className="bg-white rounded-lg shadow-xl w-[70%] max-w-4xl max-h-[80vh] overflow-auto">
+      <div className="bg-white rounded-lg shadow-xl w-full h-full max-w-none max-h-none sm:w-[70%] sm:max-w-4xl sm:max-h-[80vh] sm:overflow-auto overflow-auto">
         <div className="flex justify-between items-center p-6 border-b border-gray-200">
           <h2 className="text-2xl font-bold text-gray-800">Atenção - Tarefas de Correção</h2>
           <button 
@@ -142,9 +142,9 @@ function SLAModal({ tasks, onClose, onRefresh }: { tasks: TaskItem[]; onClose: (
             ×
           </button>
         </div>
-        
-        <div className="flex justify-between items-center px-6 py-3 bg-gray-50 border-b border-gray-200">
-          <div className="flex items-center space-x-4">
+        {/* Barra de atualização responsiva */}
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center px-6 py-3 bg-gray-50 border-b border-gray-200 gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
             <span className="text-sm text-gray-600">
               Última atualização: {formatTime(lastUpdate)}
             </span>
@@ -162,7 +162,7 @@ function SLAModal({ tasks, onClose, onRefresh }: { tasks: TaskItem[]; onClose: (
             }`}
             title="Atualizar lista de tarefas"
           >
-            <span className={`${isLoading ? 'animate-spin' : ''}`}>
+            <span className={`${isLoading ? 'animate-spin' : ''}`}> 
               {isLoading ? '🔄' : '🔄'}
             </span>
             <span>{isLoading ? 'Atualizando...' : 'Atualizar'}</span>
